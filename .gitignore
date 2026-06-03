@@ -205,3 +205,7 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# 원본 대용량 CSV는 깃에 올리지 않음 (대신 data/*.csv.gz 사용)
+data/실거래가_2018-2020.csv
+data/전월세_2018-2020.csv
