@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026년 1학기 데이터론</title>
+<title>강의자료 — JeongYun Lee</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -66,23 +66,50 @@ header h1 {
   border-radius: 1px;
 }
 
-/* ─── TABS / CARDS ─── */
-.cards {
+/* ─── COURSE LIST ─── */
+main {
   max-width: 860px;
   margin: 0 auto;
   padding: 0 2rem 6rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 3rem;
 }
 
-.section-label {
+.course-head {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.course-head h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.course-term {
   font-family: var(--mono);
   font-size: .68rem;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: .3rem;
+}
+
+.course-desc {
+  font-size: .85rem;
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 1.2rem;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .card {
@@ -99,10 +126,12 @@ header h1 {
   transition: box-shadow .2s, transform .2s, border-color .2s;
 }
 
-.card:hover {
+.card:hover,
+.card:focus-visible {
   box-shadow: 0 6px 24px rgba(0,0,0,.09);
   transform: translateY(-2px);
   border-color: var(--accent);
+  outline: none;
 }
 
 .card-icon {
@@ -110,9 +139,7 @@ header h1 {
   flex-shrink: 0;
 }
 
-.card-body {
-  flex: 1;
-}
+.card-body { flex: 1; }
 
 .card-title {
   font-size: 1.05rem;
@@ -151,9 +178,19 @@ header h1 {
   transition: color .2s, transform .2s;
 }
 
-.card:hover .card-arrow {
+.card:hover .card-arrow,
+.card:focus-visible .card-arrow {
   color: var(--accent);
   transform: translateX(3px);
+}
+
+.empty {
+  font-size: .82rem;
+  color: var(--muted);
+  font-weight: 300;
+  border: 1px dashed var(--border);
+  border-radius: .85rem;
+  padding: 1.4rem 1.8rem;
 }
 
 /* ─── FOOTER ─── */
@@ -165,39 +202,91 @@ footer {
   color: var(--muted);
   border-top: 1px solid var(--border);
 }
+
+@media (max-width: 540px) {
+  header { padding: 3rem 1.25rem 2rem; }
+  main { padding: 0 1.25rem 4rem; }
+  .card { padding: 1.2rem 1.3rem; gap: 1rem; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="eyebrow">2026 · 1학기</div>
-  <h1>데이터론</h1>
-  <p class="sub">강의자료 모음 · JeongYun Lee</p>
+  <div class="eyebrow">Class Materials</div>
+  <h1>강의자료</h1>
+  <p class="sub">수업별 슬라이드 모음 · JeongYun Lee</p>
 </header>
 
 <div class="divider"></div>
 
-<div class="cards">
-  <div class="section-label">파이썬 기초</div>
-
-  <a class="card" href="slides/week07.html">
-    <div class="card-icon">🐍</div>
-    <div class="card-body">
-      <div class="card-title">파이썬 기초 문법 총정리</div>
-      <div class="card-desc">데이터형 · 컬렉션 · 연산자 · 제어문 · 함수 · 예외처리 · 정규표현식</div>
-      <div class="card-tags">
-        <span class="tag">Week 07</span>
-        <span class="tag">슬라이드</span>
-        <span class="tag">퀴즈 포함</span>
-      </div>
-    </div>
-    <div class="card-arrow">→</div>
-  </a>
-</div>
+<main id="courses"></main>
 
 <footer>
   cathx618@cau.ac.kr
 </footer>
+
+<script>
+/* 새 자료 추가 방법:
+   slides/<폴더>/ 아래에 html을 두고, 아래 목록에 항목 하나만 추가하면 됩니다. */
+const COURSES = [
+  {
+    id: 'data2026',          // slides/ 하위 폴더 이름
+    title: '데이터론',
+    term: '2026 · 1학기',
+    desc: '데이터의 개념부터 수집·정제·분석·시각화까지 다루는 학부 전공 수업',
+    slides: [
+      {
+        file: 'week07.html',
+        icon: '🐍',
+        title: '파이썬 기초 문법 총정리',
+        desc: '데이터형 · 컬렉션 · 연산자 · 제어문 · 함수 · 예외처리 · 정규표현식',
+        tags: ['Week 07', '슬라이드', '퀴즈 포함']
+      }
+    ]
+  },
+  {
+    id: 'text-mining2026',
+    title: '텍스트마이닝',
+    term: '2026 · 1학기',
+    desc: '텍스트 데이터 처리와 언어모델, 그리고 AI 에이전트까지 이어지는 수업',
+    slides: [
+      {
+        file: 'week09.html',
+        icon: '🧠',
+        title: '단어에서 에이전트까지',
+        desc: '임베딩 · 사전학습/미세조정/강화학습 · API와 로컬 모델 · 멀티모달 · 에이전트',
+        tags: ['Week 09', '슬라이드', '인터랙티브']
+      }
+    ]
+  }
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('courses').innerHTML = COURSES.map(course => `
+  <section>
+    <div class="course-head">
+      <h2>${esc(course.title)}</h2>
+      <span class="course-term">${esc(course.term)}</span>
+    </div>
+    ${course.desc ? `<p class="course-desc">${esc(course.desc)}</p>` : ''}
+    <div class="cards">
+      ${course.slides.length ? course.slides.map(s => `
+        <a class="card" href="slides/${esc(course.id)}/${esc(s.file)}">
+          <div class="card-icon" aria-hidden="true">${esc(s.icon || '📄')}</div>
+          <div class="card-body">
+            <div class="card-title">${esc(s.title)}</div>
+            <div class="card-desc">${esc(s.desc || '')}</div>
+            ${(s.tags && s.tags.length) ? `<div class="card-tags">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+          </div>
+          <div class="card-arrow" aria-hidden="true">→</div>
+        </a>
+      `).join('') : '<div class="empty">아직 업로드된 자료가 없습니다.</div>'}
+    </div>
+  </section>
+`).join('');
+</script>
 
 </body>
 </html>
