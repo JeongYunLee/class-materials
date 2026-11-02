@@ -1,2 +1,2 @@
-# data-2026-1
-Data Class Resources
+# Class materials
+2026
