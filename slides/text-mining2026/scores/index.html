@@ -97,6 +97,15 @@ tr.reason td { padding: 0 8px 12px; }
 .overall { margin-top: 16px; font-size: 0.85rem; }
 .overall p { margin: 6px 0 0; }
 .ok { color: var(--muted); font-size: 0.82rem; }
+.cap-guide { margin-top: 24px; background: var(--bg); border-radius: 16px; padding: 16px; }
+.cap-table { font-size: 0.85rem; }
+.cap-table td { padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+.cap-table td.r { white-space: nowrap; }
+.cap-table tr.on td { background: var(--accent-soft); font-weight: 500; }
+.cap-table tr.on td:first-child { border-radius: 8px 0 0 8px; }
+.cap-table tr.on td:last-child { border-radius: 0 8px 8px 0; }
+.badge { display: inline-block; margin-right: 6px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 0.72rem; font-weight: 500; }
+.cap-note { margin: 10px 0 0; font-size: 0.8rem; color: var(--muted); }
 
 @media (max-width: 520px) {
   .card { padding: 18px; }
@@ -305,6 +314,32 @@ function renderSection(sec, stats) {
     const v = sec.items["감점 사유"];
     const p = el("p"); p.append(v ? el("span", "reason-text", v) : el("span", "ok", "감점 없음"));
     o.append(p); card.append(o);
+  }
+
+  // 상한 점수 기준 안내 (내 상한 행 강조)
+  if ("#상한 점수" in sec.items) {
+    const mine = sec.items["#상한 점수"];
+    const g = el("div", "cap-guide");
+    g.append(el("p", "dist-title", "상한 점수 기준"));
+    const t = el("table", "cap-table");
+    const thead = el("thead"); const hr = el("tr");
+    hr.append(el("th", null, "현장 답변 결과"), el("th", "r", "과제 점수 상한"));
+    thead.append(hr); t.append(thead);
+    const tb = el("tbody");
+    for (const [rule, cap, label] of [
+      ["모든 문항 “설명함”, 또는 “일부”가 1개 이하", "30", "30점 (상한 없음)"],
+      ["“못함”은 없지만 “일부”가 2개 이상, 또는 “못함” 1개", "24", "24점"],
+      ["“못함”이 2개 이상", "15", "15점"],
+    ]) {
+      const tr = el("tr", cap === mine ? "on" : null);
+      const td1 = el("td", null, rule);
+      const td2 = el("td", "r num", label);
+      if (cap === mine) td2.prepend(el("span", "badge", "내 상한"));
+      tr.append(td1, td2); tb.append(tr);
+    }
+    t.append(tb); g.append(t);
+    g.append(el("p", "cap-note", "최종 점수 = min(과제 점수, 상한 점수) + 가산점"));
+    card.append(g);
   }
   return card;
 }
