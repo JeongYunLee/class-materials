@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light only">
+<title>텍스트마이닝 성적 조회</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+  --bg: #ffffff; --surface: #f0f4f9; --surface-2: #dde3ea; --line: #c4c7c5;
+  --fg: #1f1f1f; --muted: #5f6368;
+  --accent: #0b57d0; --accent-soft: #d3e3fd; --on-accent: #ffffff;
+  --box: #a8b3c0; --box-fill: #e3e8ee;
+  --hot: #b3261e; --hot-soft: #f9dedc;
+  /* 시스템 다크 모드와 관계없이 항상 밝은 화면 */
+  color-scheme: light only;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  padding: 10vh 16px 64px;
+}
+main { width: 100%; max-width: 640px; margin: 0 auto; }
+.reason-text { overflow-wrap: anywhere; }
+h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+.sub { color: var(--muted); margin: 0 0 28px; font-size: 0.95rem; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* 로그인 */
+#login { max-width: 420px; margin: 0 auto; }
+#login h1, #login .sub { text-align: center; }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 6px; font-size: 0.875rem; font-weight: 500; color: var(--muted); }
+input {
+  font: inherit; font-size: 1rem; color: var(--fg); background: var(--surface);
+  border: 1px solid transparent; border-radius: 12px; padding: 12px 14px;
+}
+input:focus-visible { outline: none; border-color: var(--accent); }
+button {
+  font: inherit; font-weight: 500; margin-top: 8px; padding: 12px; border: 0;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent); cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: progress; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.msg { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: var(--hot-soft); color: var(--hot); font-size: 0.9rem; }
+
+/* 결과 */
+.who { margin: 0 0 4px; font-size: 1.5rem; font-weight: 700; }
+.card { margin-top: 20px; background: var(--surface); border-radius: 24px; padding: 24px; }
+.card-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.eyebrow { margin: 0 0 6px; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.hero { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.hero b { font-size: 2.75rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.hero span { color: var(--muted); font-size: 1rem; }
+.hero-label { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.chip { background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 0.8rem; }
+.chip em { font-style: normal; color: var(--muted); margin-right: 6px; }
+
+/* 분포 */
+.dist { margin-top: 20px; background: var(--bg); border-radius: 16px; padding: 16px 16px 12px; }
+.dist-title { margin: 0 0 4px; font-size: 0.85rem; font-weight: 500; }
+.dist svg { display: block; width: 100%; height: auto; overflow: visible; }
+.dist text { font-family: inherit; font-size: 12px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.dist .me-label { fill: var(--accent); font-weight: 700; font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.stat { background: var(--surface); border-radius: 12px; padding: 10px 12px; }
+.stat dt { font-size: 0.75rem; color: var(--muted); }
+.stat dd { margin: 2px 0 0; font-size: 1.1rem; font-weight: 500; }
+
+/* 세부 점수 표 */
+.tbl-wrap { margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+caption { text-align: left; font-size: 0.85rem; font-weight: 500; padding-bottom: 8px; }
+th { font-size: 0.75rem; font-weight: 500; color: var(--muted); text-align: left; padding: 0 8px 8px; }
+th.r, td.r { text-align: right; }
+td { padding: 12px 8px; vertical-align: top; }
+tbody tr.item td { border-top: 1px solid var(--line); }
+tbody tr.item:first-child td { border-top: 0; }
+td.label { width: 50%; }
+.idx { color: var(--muted); margin-right: 4px; }
+.score { white-space: nowrap; font-weight: 500; }
+.score small { color: var(--muted); }
+.meter { height: 6px; border-radius: 3px; background: var(--surface-2); margin-top: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.avg { color: var(--muted); white-space: nowrap; }
+tr.reason td { padding: 0 8px 12px; }
+.reason-text {
+  display: inline-block; font-size: 0.82rem; line-height: 1.55; color: var(--hot);
+  background: var(--hot-soft); border-radius: 8px; padding: 6px 10px;
+}
+.overall { margin-top: 16px; font-size: 0.85rem; }
+.overall p { margin: 6px 0 0; }
+.ok { color: var(--muted); font-size: 0.82rem; }
+
+@media (max-width: 520px) {
+  .card { padding: 18px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .chips { justify-content: flex-start; }
+  td.label { width: auto; }
+  th.avg-col, td.avg { display: none; }
+  /* SVG가 작게 축소되므로 boxplot 글자를 키움 */
+  .dist text { font-size: 22px; }
+  .dist .me-label { font-size: 24px; }
+}
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div id="login">
+    <h1>텍스트마이닝 성적 조회</h1>
+    <p class="sub">이름과 학번을 입력하면 본인 점수를 확인할 수 있습니다.</p>
+    <form id="f" autocomplete="off">
+      <label>이름 <input id="name" required autocomplete="name"></label>
+      <label>학번 <input id="sid" required inputmode="numeric"></label>
+      <button id="btn" type="submit">조회</button>
+    </form>
+    <div id="msg" class="msg" role="alert" hidden></div>
+  </div>
+
+  <section id="result" aria-live="polite" hidden>
+    <p class="eyebrow">텍스트마이닝 성적</p>
+    <h1 id="who" class="who"></h1>
+    <div id="sections"></div>
+  </section>
+</main>
+
+<script src="scores.js"></script>
+<script>
+// build.py의 normalize()와 반드시 동일해야 함
+const normalize = (name, sid) =>
+  name.normalize("NFC").replace(/\s+/g, "") + "|" + sid.replace(/\s+/g, "");
+
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+
+async function lookup(name, sid) {
+  const data = window.SCORES;
+  if (!data) throw new Error("성적 파일(scores.js)을 불러오지 못했습니다.");
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode(normalize(name, sid)), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt: b64(data.salt), iterations: data.iterations }, base, 48 * 8);
+  const rec = data.records[hex(bits.slice(0, 16))];
+  if (!rec) return null;
+  const key = await crypto.subtle.importKey("raw", bits.slice(16), "AES-GCM", false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(rec.iv) }, key, b64(rec.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+/* ---------- 화면 그리기 ---------- */
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const fmt = v => (Math.round(v * 100) / 100).toString();
+const isNum = v => v !== "" && v !== undefined && !isNaN(Number(v));
+
+// "(1) 문제 정의와 분석 목표 (4)" → { idx: "(1)", label: "문제 정의와 분석 목표", max: 4 }
+function parseKey(k) {
+  let idx = "", label = k, max = null;
+  const a = label.match(/^(\(\d+\))\s*(.*)$/); if (a) { idx = a[1]; label = a[2]; }
+  const b = label.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\)$/); if (b) { label = b[1]; max = Number(b[2]); }
+  return { idx, label, max };
+}
+
+// 가로 boxplot (min–max 수염, Q1–Q3 상자, 중앙값 선, 내 점수 표시)
+function boxplot(st, mine, max) {
+  const W = 560, H = 92, L = 12, R = 12, Y = 48, BH = 26;
+  let lo = Math.min(st.min, mine), hi = Math.max(st.max, mine, max ?? -Infinity);
+  const pad = (hi - lo) * 0.04 || 1; lo -= pad; hi += pad;
+  const x = v => L + (v - lo) / (hi - lo) * (W - L - R);
+  const ns = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, text) => {
+    const n = document.createElementNS(ns, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (text !== undefined) n.textContent = text;
+    return n;
+  };
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": `반 분포: 최소 ${fmt(st.min)}, 1사분위 ${fmt(st.q1)}, 중앙값 ${fmt(st.median)}, 3사분위 ${fmt(st.q3)}, 최대 ${fmt(st.max)}. 내 점수 ${fmt(mine)}` });
+  const g = s("g", {});
+  const tip = s("title", {}, `최소 ${fmt(st.min)} · Q1 ${fmt(st.q1)} · 중앙값 ${fmt(st.median)} · Q3 ${fmt(st.q3)} · 최대 ${fmt(st.max)}`);
+  g.append(tip);
+  // 축
+  g.append(s("line", { x1: x(lo + pad), x2: x(hi - pad), y1: H - 18, y2: H - 18, stroke: "var(--line)", "stroke-width": 1 }));
+  // 수염
+  g.append(s("line", { x1: x(st.min), x2: x(st.max), y1: Y, y2: Y, stroke: "var(--box)", "stroke-width": 2 }));
+  for (const v of [st.min, st.max])
+    g.append(s("line", { x1: x(v), x2: x(v), y1: Y - 8, y2: Y + 8, stroke: "var(--box)", "stroke-width": 2, "stroke-linecap": "round" }));
+  // 상자
+  g.append(s("rect", { x: x(st.q1), y: Y - BH / 2, width: Math.max(x(st.q3) - x(st.q1), 2), height: BH, rx: 4,
+    fill: "var(--box-fill)", stroke: "var(--box)", "stroke-width": 1.5 }));
+  // 중앙값
+  g.append(s("line", { x1: x(st.median), x2: x(st.median), y1: Y - BH / 2, y2: Y + BH / 2, stroke: "var(--fg)", "stroke-width": 2 }));
+  // 축 눈금: 최소·최대
+  const ticks = [...new Set([st.min, st.max])];
+  for (const v of ticks) g.append(s("text", { x: x(v), y: H - 4, "text-anchor": "middle" }, fmt(v)));
+  svg.append(g);
+  // 내 점수
+  const me = s("g", {});
+  me.append(s("title", {}, `내 점수 ${fmt(mine)}`));
+  me.append(s("line", { x1: x(mine), x2: x(mine), y1: 20, y2: Y + BH / 2 + 2, stroke: "var(--accent)", "stroke-width": 2 }));
+  me.append(s("circle", { cx: x(mine), cy: Y, r: 6, fill: "var(--accent)", stroke: "var(--bg)", "stroke-width": 2 }));
+  const anchor = x(mine) > W - 130 ? "end" : x(mine) < 130 ? "start" : "middle";
+  me.append(s("text", { x: x(mine), y: 14, "text-anchor": anchor, class: "me-label" }, `내 점수 ${fmt(mine)}`));
+  svg.append(me);
+  return svg;
+}
+
+function renderSection(sec, stats) {
+  const entries = Object.entries(sec.items);
+  const [heroKey, heroVal] = entries[0];
+  const hero = parseKey(heroKey);
+  const card = el("section", "card");
+
+  // 헤더: 섹션 이름 + 대표 점수 + 요약 칩
+  const head = el("div", "card-head");
+  const left = el("div");
+  left.append(el("p", "eyebrow", sec.title));
+  const h = el("p", "hero");
+  h.append(el("b", "num", isNum(heroVal) ? fmt(Number(heroVal)) : "미정"));
+  if (hero.max) h.append(el("span", "num", `/ ${hero.max}`));
+  left.append(h, el("p", "hero-label", hero.label));
+  const chips = el("div", "chips");
+  for (const [k, v] of entries.filter(([k]) => k.startsWith("#"))) {
+    const c = el("span", "chip");
+    c.append(el("em", null, k.slice(1)), document.createTextNode(v === "" ? "미정" : v));
+    chips.append(c);
+  }
+  head.append(left, chips);
+  card.append(head);
+
+  // 분포: boxplot + 통계 타일
+  const st = stats?.[heroKey];
+  if (st && isNum(heroVal)) {
+    const d = el("div", "dist");
+    d.append(el("p", "dist-title", `반 ${st.n}명 ${hero.label} 분포`), boxplot(st, Number(heroVal), hero.max));
+    const dl = el("dl", "stats");
+    for (const [label, v] of [["평균", st.mean], ["중앙값", st.median], ["최소", st.min], ["최대", st.max]]) {
+      const t = el("div", "stat"); t.append(el("dt", null, label), el("dd", "num", fmt(v))); dl.append(t);
+    }
+    d.append(dl);
+    card.append(d);
+  }
+
+  // 세부 점수 표
+  const rows = entries.slice(1).filter(([k]) => !k.startsWith("#") && !k.endsWith("감점 사유"));
+  if (rows.length) {
+    const wrap = el("div", "tbl-wrap");
+    const t = el("table");
+    t.append(el("caption", null, "세부 점수"));
+    const thead = el("thead"); const hr = el("tr");
+    hr.append(el("th", null, "항목"), el("th", null, "내 점수"), el("th", "r avg-col", "반 평균"));
+    thead.append(hr); t.append(thead);
+    const tb = el("tbody");
+    for (const [k, v] of rows) {
+      const p = parseKey(k);
+      const tr = el("tr", "item");
+      const td1 = el("td", "label");
+      if (p.idx) td1.append(el("span", "idx num", p.idx));
+      td1.append(document.createTextNode(p.label));
+      const td2 = el("td", "score");
+      const sc = el("span", "num", isNum(v) ? fmt(Number(v)) : (v || "-"));
+      td2.append(sc);
+      if (p.max) {
+        td2.append(el("small", "num", ` / ${p.max}`));
+        if (isNum(v)) {
+          const m = el("div", "meter"); const i = el("i");
+          i.style.width = `${Math.max(0, Math.min(1, Number(v) / p.max)) * 100}%`;
+          m.append(i); td2.append(m);
+        }
+      }
+      const avg = stats?.[k]?.mean;
+      tr.append(td1, td2, el("td", "r avg num", avg !== undefined ? fmt(avg) : "-"));
+      tb.append(tr);
+      // 항목별 감점 사유: 실제 감점이 있을 때만 표시
+      const rk = p.idx ? `${p.idx} 감점 사유` : null;
+      const reason = rk ? sec.items[rk] : "";
+      // 만점이면(감점 없음) 사유를 표시하지 않음
+      const deducted = isNum(v) && p.max ? Number(v) < p.max : reason !== "감점 없음";
+      if (reason && deducted) {
+        const rr = el("tr", "reason"); const td = el("td"); td.colSpan = 3;
+        const box = el("span", "reason-text");
+        box.append(el("b", null, "감점 사유: "), document.createTextNode(reason));
+        td.append(box); rr.append(td); tb.append(rr);
+      }
+    }
+    t.append(tb); wrap.append(t); card.append(wrap);
+  }
+
+  // 전체 감점 사유
+  if (sec.items["감점 사유"]) {
+    const o = el("div", "overall");
+    o.append(el("p", "dist-title", "감점 사유"));
+    const v = sec.items["감점 사유"];
+    const p = el("p"); p.append(v ? el("span", "reason-text", v) : el("span", "ok", "감점 없음"));
+    o.append(p); card.append(o);
+  }
+  return card;
+}
+
+function render(data) {
+  $("who").textContent = `${data["이름"]} 님`;
+  const stats = window.SCORES.stats || {};
+  $("sections").replaceChildren(...data.sections.map(sec => renderSection(sec, stats[sec.title])));
+  $("login").hidden = true;
+  $("result").hidden = false;
+}
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("msg").hidden = true;
+  $("btn").disabled = true; $("btn").textContent = "조회 중…";
+  try {
+    const data = await lookup($("name").value, $("sid").value);
+    if (!data) throw new Error("일치하는 정보가 없습니다. 이름과 학번을 다시 확인해 주세요.");
+    render(data);
+  } catch (err) {
+    $("msg").textContent = err.message || "오류가 발생했습니다.";
+    $("msg").hidden = false;
+  } finally {
+    $("btn").disabled = false; $("btn").textContent = "조회";
+  }
+});
+</script>
+</body>
+</html>

@@ -209,3 +209,12 @@ __marimo__/
 # 원본 대용량 CSV는 깃에 올리지 않음 (대신 data/*.csv.gz 사용)
 data/실거래가_2018-2020.csv
 data/전월세_2018-2020.csv
+
+# 성적 조회 사이트: 아래 4개 파일만 커밋 허용, 나머지(채점 엑셀·CSV 등)는 전부 무시
+# scores.js는 학생별로 암호화된 배포용 파일
+slides/text-mining2026/scores/*
+!slides/text-mining2026/scores/index.html
+!slides/text-mining2026/scores/scores.js
+!slides/text-mining2026/scores/build.py
+!slides/text-mining2026/scores/convert_xlsx.py
+*.xlsx
