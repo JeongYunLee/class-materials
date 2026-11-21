@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스키마 설계 가이드: 데이터에서 시작하는 일곱 단계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas: #f3f5f9;
+    --surface: #ffffff;
+    --ink: #141b2b;
+    --ink-2: #38425a;
+    --muted: #5f6b82;
+    --hair: #dbe1ec;
+    --navy: #0b2a6f;
+    --navy-deep: #071d52;
+    --navy-soft: #e6ecf8;
+    --navy-mid: #c2d0ec;
+    --accent: #2f62c9;
+    --accent-soft: #eaf0fc;
+    --accent-line: #c3d3f3;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+    --sans: "IBM Plex Sans KR", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 150px; overflow-x: hidden; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.7; word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+  code { font-family: var(--mono); font-size: 0.86em; background: #e8ecf4; padding: 1px 6px; border-radius: 4px; }
+  a { color: var(--navy); text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; border-radius: 4px; }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 56px 0 28px; }
+  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(30px, 4.4vw, 44px); line-height: 1.2; letter-spacing: -.02em; font-weight: 600; margin: 0 0 14px; color: var(--navy); }
+  .lede { font-size: 17px; color: var(--ink-2); max-width: 46em; margin: 0; }
+  .mast-notes { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; padding: 0; list-style: none; }
+  .mast-notes li { font-size: 14px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--hair); border-radius: 999px; padding: 5px 14px; }
+
+
+  .data-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 20px 0 0; font-size: 15px; }
+  .data-link span { font-size: 12.5px; font-weight: 600; letter-spacing: .05em; color: var(--muted); }
+  .data-link a { text-decoration: none; font-weight: 500; color: var(--navy); background: var(--surface); border: 1px solid var(--navy-mid); border-radius: 999px; padding: 6px 16px; transition: background-color .2s; }
+  .data-link a:hover { background: var(--navy-soft); }
+  .terms { margin: 18px 0 0; background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-md); }
+  .terms summary { cursor: pointer; padding: 11px 18px; font-size: 15px; font-weight: 500; color: var(--navy); list-style-position: inside; }
+  .terms dl { margin: 0; padding: 4px 18px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; }
+  .terms dt { font-weight: 600; color: var(--navy); font-size: 15px; }
+  .terms dd { margin: 2px 0 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.6; }
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; margin: 16px 0 0; }
+  .flow > div { background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-md); padding: 10px 16px 11px; min-width: 200px; }
+  .flow p { margin: 5px 0 0; font-size: 15px; color: var(--ink); }
+  .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  .tag.in { color: var(--ink-2); background: #e9edf4; }
+  .reason { margin: 12px 0 0; font-size: 15.5px; color: var(--ink-2); max-width: 46em; }
+  .reason b { color: var(--navy); font-weight: 600; margin-right: 6px; }
+
+  /* ---------- stepper ---------- */
+  .stepper-bar { position: sticky; top: 0; z-index: 20; background: rgba(243,245,249,.94); backdrop-filter: blur(8px); border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+  .stepper-inner { display: flex; align-items: center; gap: 16px; min-width: 0; }
+  .stepper { position: relative; flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 14px 0 12px; margin: 0; list-style: none; }
+  .track, .track-fill { position: absolute; top: 31px; height: 2px; left: calc(100% / 14); border-radius: 2px; }
+  .track { right: calc(100% / 14); background: var(--hair); }
+  .track-fill { width: 0; background: var(--navy); transition: width .35s cubic-bezier(.4,0,.2,1); }
+  .step { position: relative; z-index: 1; appearance: none; border: 0; background: none; width: 100%; padding: 2px 4px 6px; cursor: pointer; font: inherit; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 7px; border-radius: var(--r-md); transition: background-color .2s; }
+  .step:hover { background: rgba(11,42,111,.06); }
+  .dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 2px solid var(--hair); font-size: 15px; font-weight: 600; color: var(--muted); transition: background-color .25s, border-color .25s, color .25s, transform .25s; }
+  .step-label { font-size: 13.5px; line-height: 1.35; text-align: center; font-weight: 500; }
+  .step.done .dot { border-color: var(--navy); color: var(--navy); background: var(--navy-soft); }
+  .step.done { color: var(--ink-2); }
+  .step[aria-selected="true"] { color: var(--navy); }
+  .step[aria-selected="true"] .dot { background: var(--navy); border-color: var(--navy); color: #fff; transform: scale(1.12); }
+  .step[aria-selected="true"] .step-label { font-weight: 600; }
+  .view-toggle { flex: none; appearance: none; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-2); background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-sm); padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+  .view-toggle:hover { border-color: var(--navy-mid); color: var(--navy); }
+  .view-toggle[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  /* ---------- panels ---------- */
+  main.wrap { padding-top: 40px; padding-bottom: 20px; }
+  .panel { display: none; }
+  .panel.active { display: block; animation: rise .38s cubic-bezier(.2,.7,.2,1) both; }
+  body.show-all .panel { display: block; animation: none; margin-bottom: 56px; }
+  body.show-all .pager { display: none; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .panel-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: center; margin-bottom: 26px; }
+  .big-num { grid-row: span 2; width: 76px; height: 76px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 34px; font-weight: 600; }
+  .count { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--muted); margin: 0; align-self: end; }
+  h2 { font-size: clamp(24px, 3vw, 31px); line-height: 1.25; letter-spacing: -.015em; font-weight: 600; margin: 0; color: var(--ink); align-self: start; }
+  .summary { font-size: 17.5px; color: var(--ink-2); margin: 0 0 6px; max-width: 44em; }
+  .result { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
+  .tag { font-size: 12.5px; font-weight: 600; color: var(--navy); background: var(--navy-soft); border-radius: 999px; padding: 3px 11px; }
+  
+  .cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; margin-top: 26px; align-items: start; }
+  .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 26px; }
+  .card { background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 22px 24px; }
+  .card h3 { font-size: 16px; font-weight: 600; margin: 0 0 10px; color: var(--navy); }
+  .card p { margin: 0 0 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .label { font-size: 12.5px; font-weight: 600; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+  ul.do { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  ul.do li { position: relative; padding-left: 26px; }
+  ul.do li::before { content: ""; position: absolute; left: 4px; top: .62em; width: 8px; height: 8px; border-radius: 50%; background: var(--navy); }
+  .note { background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-md); padding: 14px 18px; color: var(--ink-2); font-size: 15px; }
+  .note b { color: var(--navy); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .chips li { font-size: 14px; background: var(--canvas); border: 1px solid var(--hair); border-radius: 999px; padding: 4px 13px; }
+
+  .qs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 26px; }
+  .q { background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 22px; }
+  .q .n { width: 30px; height: 30px; border-radius: 50%; background: var(--navy-soft); color: var(--navy); font-weight: 600; display: grid; place-items: center; margin-bottom: 12px; }
+  .q h3 { font-size: 16.5px; font-weight: 600; margin: 0 0 8px; line-height: 1.45; }
+  .q p { margin: 0; font-size: 15px; color: var(--ink-2); }
+
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--hair); border-radius: var(--r-md); background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { padding: 9px 13px; text-align: left; vertical-align: top; border: 1px solid var(--hair); }
+  tr:first-child th { border-top: 0; } tr:last-child td { border-bottom: 0; }
+  th:first-child, td:first-child { border-left: 0; } th:last-child, td:last-child { border-right: 0; }
+  th { background: var(--navy); color: #fff; font-weight: 500; font-size: 13.5px; white-space: nowrap; border-color: #24438a; }
+  td.k { font-weight: 500; color: var(--navy); white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  tr.uri td { background: #f1f5fc; }
+  .wide table { min-width: 760px; }
+  figure { margin: 0; background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 18px 18px 14px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  svg text { font-family: var(--sans); }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 13.5px; color: var(--ink-2); }
+  .legend li { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 30px; height: 16px; display: inline-block; }
+  .sw.ent { border: 2px solid var(--navy); border-radius: 50%; }
+  .sw.cls { background: var(--navy-mid); border: 2px solid var(--navy); border-radius: 50%; }
+  .sw.lit { border: 1.5px dashed var(--navy); }
+
+
+  /* ---------- S-P-O sentences ---------- */
+  .spo { list-style: none; margin: 0; padding: 18px 22px; display: grid; gap: 7px; background: var(--surface); border: 1px solid var(--hair); border-radius: var(--r-lg); font-size: 15.5px; line-height: 1.95; }
+  .spo li.gap { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--hair); }
+  .spo mark, .key mark { color: inherit; padding: 2px 7px; border-radius: 5px; }
+  mark.s { background: #d3e0fb; }
+  mark.p { background: #bfeee3; }
+  mark.o { background: #e4dbfc; }
+  mark.ent { background: #d3e0fb; border-radius: 999px; padding: 2px 11px; box-shadow: inset 0 0 0 1.6px var(--navy); }
+  mark.lit { background: var(--surface); border-radius: 3px; padding: 1px 8px; box-shadow: none; outline: 1.6px dashed var(--navy); outline-offset: -1px; }
+  .key { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 10px; padding: 0; list-style: none; font-size: 13.5px; color: var(--ink-2); }
+  .key b { font-weight: 600; color: var(--muted); letter-spacing: .05em; font-size: 12.5px; }
+  .why { color: var(--muted); font-size: 13.5px; margin-left: 10px; white-space: nowrap; }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; }
+  .pager button { appearance: none; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; border-radius: 999px; padding: 10px 20px; border: 1px solid var(--hair); background: var(--surface); color: var(--ink); transition: background-color .2s, border-color .2s, color .2s; }
+  .pager button:hover:not(:disabled) { border-color: var(--navy); color: var(--navy); }
+  .pager button.next { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .pager button.next:hover:not(:disabled) { background: var(--navy-deep); color: #fff; }
+  .pager button:disabled { opacity: .35; cursor: default; }
+
+  footer { font-size: 13.5px; color: var(--muted); padding: 0 0 48px; }
+
+  @media (max-width: 860px) {
+    .cols, .qs { grid-template-columns: minmax(0, 1fr); }
+    .stepper-inner { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: 10px; }
+    .stepper { overflow-x: auto; grid-template-columns: repeat(7, 104px); scrollbar-width: none; max-width: 100%; }
+    .track, .track-fill { display: none; }
+    .view-toggle { align-self: flex-end; }
+    .panel-head { grid-template-columns: 1fr; }
+    .big-num { grid-row: auto; width: 56px; height: 56px; font-size: 26px; }
+  }
+  @media (max-width: 520px) { .wrap { padding: 0 18px; } .terms dl { grid-template-columns: minmax(0, 1fr); } .flow .arrow { display: none; } .flow > div { flex: 1 1 100%; } }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .panel.active { animation: none; }
+    .track-fill, .dot, .step, .pager button { transition: none; }
+  }
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .stepper-bar, .pager, .view-toggle { display: none; }
+    .panel { display: block !important; break-inside: avoid-page; margin-bottom: 28px; animation: none !important; }
+    .mast { padding-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <p class="eyebrow">2026년 2학기 텍스트 마이닝 · 스키마 설계 가이드</p>
+    <h1>데이터에서 시작하는<br>스키마 설계 일곱 단계</h1>
+    <p class="lede">표 형태의 데이터에서 출발해 스키마를 설계하는 순서를 일곱 단계로 정리했습니다.<br>단계마다 쓰는 그래프와 표의 형식을 예시와 함께 보여 줍니다.<br>아래 단계를 누르면 그 단계의 개념, 작업 방법, 템플릿 예시가 나옵니다.</p>
+    <p class="data-link"><span>예시 데이터</span><a href="https://www.data.go.kr/data/15013109/standard.do" target="_blank" rel="noopener">전국도서관표준데이터 (공공데이터포털) ↗</a></p>
+    <details class="terms">
+      <summary>용어 먼저 보기</summary>
+      <dl>
+        <div><dt>개체</dt><dd>다른 것과 이어질 수 있는 대상입니다. 그래프에서 <b>타원</b>으로 그립니다. 예: 수자인작은도서관, 부산광역시</dd></div>
+        <div><dt>리터럴</dt><dd>글자, 숫자, 날짜 같은 값입니다. 거기서 끝나고 더 이어지지 않습니다. 그래프에서 <b>사각형</b>으로 그립니다. 예: 32, 09:00</dd></div>
+        <div><dt>클래스</dt><dd>같은 종류의 개체를 묶은 이름입니다. 예: 도서관, 시도</dd></div>
+        <div><dt>속성</dt><dd>주어와 목적어를 잇는 화살표의 이름입니다. 예: 유형, 열람좌석</dd></div>
+        <div><dt>domain · range</dt><dd>속성의 주어 자리에 오는 클래스가 domain, 목적어 자리에 오는 클래스나 값의 종류가 range입니다.</dd></div>
+        <div><dt>URI</dt><dd>개체 하나를 가리키는 고유한 이름입니다. 같은 개체는 언제나 같은 URI로 적습니다.</dd></div>
+      </dl>
+    </details>
+  </div>
+</header>
+
+<div class="stepper-bar">
+  <div class="wrap stepper-inner">
+    <div class="stepper" role="tablist" aria-label="스키마 설계 단계">
+      <span class="track" aria-hidden="true"></span><span class="track-fill" aria-hidden="true"></span>
+      <button class="step" role="tab" id="tab-1" aria-controls="step-1"><span class="dot">1</span><span class="step-label">데이터 검토</span></button>
+      <button class="step" role="tab" id="tab-2" aria-controls="step-2"><span class="dot">2</span><span class="step-label">S-P-O 관계 정리</span></button>
+      <button class="step" role="tab" id="tab-3" aria-controls="step-3"><span class="dot">3</span><span class="step-label">개체와 리터럴 구분</span></button>
+      <button class="step" role="tab" id="tab-4" aria-controls="step-4"><span class="dot">4</span><span class="step-label">행 그래프 그리기</span></button>
+      <button class="step" role="tab" id="tab-5" aria-controls="step-5"><span class="dot">5</span><span class="step-label">추상화</span></button>
+      <button class="step" role="tab" id="tab-6" aria-controls="step-6"><span class="dot">6</span><span class="step-label">명세표 작성</span></button>
+      <button class="step" role="tab" id="tab-7" aria-controls="step-7"><span class="dot">7</span><span class="step-label">표준 어휘 판단</span></button>
+    </div>
+    <button class="view-toggle" type="button" aria-pressed="false">전체 펼치기</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- 1 -->
+  <section class="panel" id="step-1" role="tabpanel" aria-labelledby="tab-1">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">1</span><p class="count">STEP 1 / 7</p><h2>데이터 검토</h2></div>
+    <p class="summary">설계하기 전에 데이터를 훑어봅니다. 한 행이 무엇을 말하는지, 한 열이 어떤 값으로 이루어져 있는지를 봅니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>원본 데이터 파일</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>중심 개체, 열별 메모</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 무엇에 대한 데이터인지 알아야 그래프의 중심을 정할 수 있습니다. 열을 미리 훑어 두면 뒤 단계의 판단이 빨라집니다.</p>
+    <div class="cols">
+      <div class="card">
+        <h3>한 행이 무엇을 말하는지</h3>
+        <p>한 행이 말하는 대상이 <b>중심 개체</b>입니다.</p>
+        <p>도서관 데이터는 한 행이 도서관 한 곳이므로, 중심 개체는 도서관입니다.</p>
+      </div>
+      <div class="card">
+        <h3>한 열이 어떤 값으로 이루어져 있는지</h3>
+        <p>열마다 서로 다른 값이 몇 가지인지(<b>고유값 개수</b>) 세고, 값이 적힌 방식을 확인합니다.</p>
+        <p>③에서 개체와 리터럴을 나누는 근거가 됩니다.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <p class="label">함께 볼 것</p>
+        <ul class="chips"><li>한 칸에 여러 값이 들어 있는 열</li><li>같은 뜻을 다르게 적은 값</li><li>빈칸 대신 넣은 값</li><li>두 번 올라온 행</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="panel" id="step-2" role="tabpanel" aria-labelledby="tab-2">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">2</span><p class="count">STEP 2 / 7</p><h2>S-P-O 관계 정리하기</h2></div>
+    <p class="summary">한 행을 골라 열마다 ‘S의 P는 O이다’ 문장으로 풀어 쓰고, S · P · O에 서로 다른 색을 칠합니다. 열 하나가 문장 하나가 됩니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>중심 개체, 고른 한 행</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>색을 칠한 S-P-O 문장</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 표의 한 칸은 ‘무엇의 무엇은 무엇이다’라는 사실 하나입니다. 문장으로 풀면 그래프의 화살표가 될 재료가 보입니다.</p>
+    <div class="cols">
+      <div class="card">
+        <p class="label">하는 일</p>
+        <ul class="do">
+          <li><b>S</b>는 중심 개체, <b>P</b>는 열 이름, <b>O</b>는 그 칸의 값입니다.</li>
+          <li>문장마다 S, P, O에 서로 다른 색으로 하이라이트를 칠합니다. 표로 옮기지 않고 문장 그대로 둡니다.</li>
+          <li>이름 열도 문장으로 씁니다. S는 대상 그 자체이고, O는 그 대상에 붙은 이름입니다.</li>
+          <li>대상이 아니라 행 자체에 대한 열은 S를 ‘이 데이터’로 따로 씁니다.</li>
+          <li>이 단계에서 O는 모두 글자입니다. 무엇을 개체로 꺼낼지는 다음 단계에서 정합니다.</li>
+        </ul>
+      </div>
+      <div>
+        <ul class="key"><li><b>템플릿 예시 · S-P-O 문장</b></li><li><mark class="s">S 주어</mark></li><li><mark class="p">P 술어</mark></li><li><mark class="o">O 목적어</mark></li></ul>
+        <ul class="spo">
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">도서관명</mark>은 <mark class="o">수자인작은도서관</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">시도명</mark>은 <mark class="o">부산광역시</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">시군구명</mark>은 <mark class="o">강서구</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">도서관유형</mark>은 <mark class="o">작은도서관</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">휴관일</mark>은 <mark class="o">연중무휴</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">평일운영시작시각</mark>은 <mark class="o">09:00</mark>이다</li>
+          <li><mark class="s">수자인작은도서관</mark>의 <mark class="p">열람좌석수</mark>는 <mark class="o">32</mark>이다</li>
+          <li class="gap"><mark class="s">이 데이터</mark>의 <mark class="p">데이터기준일자</mark>는 <mark class="o">2026-10-01</mark>이다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="panel" id="step-3" role="tabpanel" aria-labelledby="tab-3">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">3</span><p class="count">STEP 3 / 7</p><h2>개체와 리터럴 구분하기</h2></div>
+    <p class="summary">O 자리의 값마다 개체로 둘지 리터럴로 둘지 정합니다. 아래 세 가지를 차례로 묻습니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>S-P-O 문장</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>O마다 개체 / 리터럴 표시와 판단 근거</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 개체는 다른 것과 이어지는 점이 되고, 리터럴은 거기서 끝나는 값이 됩니다. 이 구분이 그래프의 모양을 정합니다.</p>
+    <div class="qs">
+      <div class="q"><div class="n">1</div><h3>그 값이 다시 S로 쓰일 수 있는가</h3><p>O로 새 문장을 시작해 봅니다. ‘부산광역시는 …이다’는 되고, ‘09:00은 …이다’는 안 됩니다.</p></div>
+      <div class="q"><div class="n">2</div><h3>다른 것과 더 연결될 필요가 있는가</h3><p>여러 행이 같은 값을 공유하거나 다른 데이터와 이어질 수 있으면 개체로 둡니다. 고유값 개수로 확인합니다.</p></div>
+      <div class="q"><div class="n">3</div><h3>이 데이터로 하고 싶은 질문에 필요한가</h3><p>애매하면 답하고 싶은 질문을 떠올립니다. ‘월요일에 여는 도서관’을 묻고 싶다면 요일을 개체로 둡니다.</p></div>
+    </div>
+    <div class="cols">
+      <div class="card"><h3>판단하는 순서</h3><p>1·2 가운데 하나라도 ‘예’이면 개체 후보입니다. 애매한 것은 3으로 정합니다.</p></div>
+      <div class="note"><b>글자 모양으로 정하지 않습니다.</b> ‘강서구’는 평범한 글자처럼 보이지만 부산과 서울에 따로 있는 개체입니다.</div>
+    </div>
+    <div class="stack">
+      <ul class="key" style="margin:6px 0 -6px"><li><b>템플릿 예시 · 같은 문장의 O에 판단을 표시합니다</b></li><li><mark class="ent">개체</mark></li><li><mark class="lit">리터럴</mark></li></ul>
+      <ul class="spo">
+        <li>수자인작은도서관의 도서관명은 <mark class="lit">수자인작은도서관</mark>이다 <span class="why">도서관에 붙은 이름</span></li>
+        <li>수자인작은도서관의 시도명은 <mark class="ent">부산광역시</mark>이다 <span class="why">다시 S로 쓸 수 있고, 여러 행이 공유</span></li>
+        <li>수자인작은도서관의 시군구명은 <mark class="ent">강서구</mark>이다 <span class="why">다시 S로 쓸 수 있고, 여러 행이 공유</span></li>
+        <li>수자인작은도서관의 도서관유형은 <mark class="ent">작은도서관</mark>이다 <span class="why">정해진 유형 가운데 하나, 여러 행이 공유</span></li>
+        <li>수자인작은도서관의 운영기관명은 <mark class="ent">에코델타…입주자대표회의</mark>이다 <span class="why">한 기관이 여러 도서관을 운영</span></li>
+        <li>수자인작은도서관의 평일운영시작시각은 <mark class="lit">09:00</mark>이다 <span class="why">더 말할 것이 없음</span></li>
+        <li>수자인작은도서관의 열람좌석수는 <mark class="lit">32</mark>이다 <span class="why">숫자</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="panel" id="step-4" role="tabpanel" aria-labelledby="tab-4">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">4</span><p class="count">STEP 4 / 7</p><h2>행 그래프 그리기</h2></div>
+    <p class="summary">2~3개 행을 실제 값 그대로 그래프로 그립니다. 한 행만 그리면 같은 개체를 여러 행이 공유하는 모습이 보이지 않습니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>개체 / 리터럴을 표시한 문장</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>행 그래프</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 실제 값으로 그려 보면 여러 행이 같은 개체에서 만나는 모습이 보입니다. 표에서는 보이지 않던 연결입니다.</p>
+    <div class="cols">
+      <div class="card">
+        <p class="label">그리는 규칙</p>
+        <ul class="do">
+          <li>개체는 <b>타원</b>, 리터럴은 <b>사각형</b>으로 그립니다. 이 가이드에서는 사각형을 점선으로 그려 타원과 더 잘 구별되게 했습니다.</li>
+          <li>리터럴은 필요한 것만 그려도 됩니다.</li>
+          <li>같은 개체는 한 번만 그리고 화살표를 잇습니다.</li>
+          <li>화살표는 S에서 O로 향하고, 그 위에 관계 이름을 적습니다.</li>
+        </ul>
+      </div>
+      <figure>
+        <ul class="legend" aria-hidden="true"><li><b style="font-weight:600;color:var(--muted)">템플릿 예시 · 행 그래프</b></li><li><span class="sw ent"></span>개체</li><li><span class="sw lit"></span>리터럴</li></ul>
+        <svg viewBox="0 0 700 250" role="img" aria-label="두 도서관의 행 그래프. 수자인작은도서관과 신대방햇살도서관이 작은도서관 타원을 함께 가리킨다.">
+          <defs><marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0b2a6f"/></marker></defs>
+          <g stroke="#0b2a6f" stroke-width="1.3" fill="none" marker-end="url(#ah4)">
+            <line x1="365" y1="64" x2="524" y2="32"/><line x1="367" y1="72" x2="524" y2="80"/><line x1="362" y1="82" x2="526" y2="121"/>
+            <line x1="362" y1="170" x2="526" y2="131"/><line x1="367" y1="180" x2="524" y2="172"/><line x1="365" y1="188" x2="524" y2="220"/>
+            <line x1="176" y1="72" x2="112" y2="72"/>
+          </g>
+          <g font-size="11" text-anchor="middle">
+            <g fill="#fff"><rect x="413" y="38" width="66" height="16"/><rect x="408" y="68" width="76" height="16"/><rect x="430" y="95" width="30" height="16"/><rect x="430" y="142" width="30" height="16"/><rect x="408" y="168" width="76" height="16"/><rect x="413" y="198" width="66" height="16"/><rect x="120" y="64" width="50" height="16"/></g>
+            <g fill="#0b2a6f"><text x="446" y="50">위치한 시도</text><text x="446" y="80">위치한 시군구</text><text x="445" y="107">유형</text><text x="445" y="154">유형</text><text x="446" y="180">위치한 시군구</text><text x="446" y="210">위치한 시도</text><text x="145" y="76">열람좌석</text></g>
+          </g>
+          <g stroke="#0b2a6f" stroke-width="2" fill="#fff">
+            <ellipse cx="270" cy="72" rx="96" ry="22"/><ellipse cx="270" cy="180" rx="96" ry="22"/>
+            <ellipse cx="600" cy="30" rx="75" ry="17"/><ellipse cx="600" cy="80" rx="75" ry="17"/><ellipse cx="600" cy="172" rx="75" ry="17"/><ellipse cx="600" cy="222" rx="75" ry="17"/>
+          </g>
+          <ellipse cx="600" cy="126" rx="75" ry="17" fill="#dbe6fb" stroke="#2f62c9" stroke-width="2.4"/>
+          <rect x="40" y="56" width="70" height="32" fill="#fff" stroke="#0b2a6f" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <g font-size="12.5" text-anchor="middle" fill="#141b2b">
+            <text x="270" y="76">수자인작은도서관</text><text x="270" y="184">신대방햇살도서관</text>
+            <text x="600" y="34">부산광역시</text><text x="600" y="84">강서구</text><text x="600" y="130">작은도서관</text><text x="600" y="176">동작구</text><text x="600" y="226">서울특별시</text>
+            <text x="75" y="76">32</text>
+          </g>
+        </svg>
+        <figcaption>두 도서관이 ‘작은도서관’ 타원 하나를 함께 가리킵니다. 이렇게 화살표가 모이는 곳이 다음 단계에서 묶을 대상입니다.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="panel" id="step-5" role="tabpanel" aria-labelledby="tab-5">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">5</span><p class="count">STEP 5 / 7</p><h2>추상화</h2></div>
+    <p class="summary">행 그래프의 타원마다 ‘A는 ___이다’ 문장을 쓰고, 같은 유형끼리 묶어 추상화한 그래프를 다시 그립니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>행 그래프</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>‘A는 ___이다’ 문장, 추상화한 그래프</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 행마다 달라지는 값을 지우고 종류만 남기면, 데이터 전체에 적용되는 틀(스키마)이 됩니다.</p>
+    <div class="cols">
+      <div class="stack" style="margin-top:0">
+        <div class="card">
+          <p class="label">하는 일</p>
+          <ul class="do">
+            <li>타원마다 <b>‘A는 ___이다’</b>를 씁니다. ‘A는 ___ 가운데 하나이다’로 읽어 자연스러우면 됩니다. 빈칸에 들어간 말이 <b>클래스</b>입니다.</li>
+            <li>같은 클래스의 타원을 하나로 묶어 다시 그립니다. 클래스는 색칠한(또는 빗금 친) 타원으로 그립니다.</li>
+            <li>리터럴은 그대로 사각형으로 그리고, 안에 값의 종류를 적습니다.</li>
+            <li>개체 사이의 화살표는 클래스 사이의 화살표 하나로 합쳐집니다.</li>
+          </ul>
+        </div>
+        <div class="note"><b>확인.</b> 행을 하나 더 넣어 봅니다. 행 그래프는 커지지만 추상화한 그래프는 바뀌지 않아야 합니다.</div>
+      </div>
+      <div class="stack" style="margin-top:0">
+        <p class="label" style="margin-bottom:-6px">템플릿 예시 · ‘A는 ___이다’ 표와 추상화한 그래프</p>
+        <div class="tbl-wrap"><table>
+          <tr><th>A (행 그래프의 타원)</th><th>는 ___이다 (클래스)</th></tr>
+          <tr><td>수자인작은도서관</td><td class="k">도서관</td></tr>
+          <tr><td>작은도서관</td><td class="k">도서관유형</td></tr>
+          <tr><td>부산광역시</td><td class="k">시도</td></tr>
+          <tr><td>강서구</td><td class="k">시군구</td></tr>
+        </table></div>
+        <figure>
+          <ul class="legend" aria-hidden="true"><li><span class="sw cls"></span>클래스</li><li><span class="sw lit"></span>리터럴</li></ul>
+          <svg viewBox="0 0 700 200" role="img" aria-label="추상화한 그래프. 도서관 클래스에서 도서관유형, 시도, 시군구, 운영기관 클래스로 화살표가 나간다.">
+            <defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0b2a6f"/></marker></defs>
+            <g stroke="#0b2a6f" stroke-width="1.3" fill="none" marker-end="url(#ah5)">
+              <line x1="268" y1="84" x2="494" y2="30"/><line x1="272" y1="94" x2="494" y2="76"/><line x1="272" y1="106" x2="494" y2="124"/><line x1="268" y1="116" x2="494" y2="170"/>
+              <line x1="130" y1="100" x2="96" y2="100"/>
+            </g>
+            <g font-size="11" text-anchor="middle">
+              <g fill="#fff"><rect x="366" y="48" width="30" height="16"/><rect x="350" y="77" width="66" height="16"/><rect x="345" y="107" width="76" height="16"/><rect x="343" y="135" width="76" height="16"/></g>
+              <g fill="#0b2a6f"><text x="381" y="60">유형</text><text x="383" y="89">위치한 시도</text><text x="383" y="119">위치한 시군구</text><text x="381" y="147">관리하는 기관</text><text x="113" y="92">이름</text></g>
+            </g>
+            <g stroke="#0b2a6f" stroke-width="2" fill="#c2d0ec">
+              <ellipse cx="200" cy="100" rx="70" ry="22"/>
+              <ellipse cx="570" cy="28" rx="75" ry="17"/><ellipse cx="570" cy="76" rx="75" ry="17"/><ellipse cx="570" cy="124" rx="75" ry="17"/><ellipse cx="570" cy="172" rx="75" ry="17"/>
+            </g>
+            <rect x="26" y="84" width="68" height="32" fill="#fff" stroke="#0b2a6f" stroke-width="1.3" stroke-dasharray="4 3"/>
+            <g font-size="12.5" text-anchor="middle" fill="#141b2b">
+              <text x="200" y="104">도서관</text><text x="570" y="32">도서관유형</text><text x="570" y="80">시도</text><text x="570" y="128">시군구</text><text x="570" y="176">운영기관</text>
+              <text x="60" y="104">텍스트</text>
+            </g>
+          </svg>
+          <figcaption>사각형은 행 그래프와 똑같이 리터럴입니다. 다만 실제 값(32) 대신 값의 종류(텍스트, 숫자, 날짜, 시간)를 적습니다. 개체 이름도 적지 않고 클래스 이름만 적습니다.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="panel" id="step-6" role="tabpanel" aria-labelledby="tab-6">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">6</span><p class="count">STEP 6 / 7</p><h2>클래스 · 속성 명세표 작성하기</h2></div>
+    <p class="summary">추상화한 그래프를 표로 옮기고, 그래프에 그리지 않은 속성까지 모두 적습니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>추상화한 그래프, 1단계의 열별 메모</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>클래스 명세표, 속성 명세표</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 그래프는 구조를 보기에 좋고, 표는 빠짐없이 적기에 좋습니다. 이 표가 나중에 데이터를 변환하는 설계도가 됩니다.</p>
+
+    <div class="stack">
+      <div class="card">
+        <h3>클래스 명세표</h3>
+        <p>추상화한 그래프의 색칠한 타원 하나가 한 줄입니다. 클래스마다 설명, 실제 예, 고유값 개수와 함께 <b>정제 규칙</b>과 <b>URI 만드는 규칙</b>을 정해 둡니다.</p>
+        <p>설계 단계에서는 규칙을 정하기만 하고, 값을 실제로 고치는 일은 변환할 때 합니다.</p>
+      </div>
+      <p class="label" style="margin:6px 0 -6px">템플릿 예시 · 클래스 명세표</p>
+      <div class="tbl-wrap wide"><table>
+        <tr><th>클래스</th><th>설명</th><th>예시 개체</th><th class="c">고유값 개수</th><th>정제 규칙</th><th>URI 만드는 규칙</th><th>표준 용어</th></tr>
+        <tr><td class="k">도서관</td><td>지자체가 관리하는 도서관 한 곳</td><td>수자인작은도서관</td><td class="c">3,556</td><td>중복 행 처리</td><td>행별로 번호 부여</td><td><code>schema:Library</code></td></tr>
+        <tr><td class="k">운영기관</td><td>도서관을 운영하는 기관</td><td>에코델타…입주자대표회의</td><td class="c">1,268</td><td>빈칸은 비워 둠</td><td>행정표준코드의 기관코드 재사용 (없는 기관은 번호 부여)</td><td><code>schema:Organization</code></td></tr>
+        <tr><td class="k">시도</td><td>도서관이 위치한 시도</td><td>부산광역시</td><td class="c">18</td><td>옛 이름을 지금 이름으로 통일</td><td>행정표준코드의 법정동코드 재사용</td><td><code>schema:AdministrativeArea</code></td></tr>
+        <tr><td class="k">시군구</td><td>도서관이 위치한 시군구</td><td>강서구</td><td class="c">236</td><td>같은 이름이 있으므로 시도 + 시군구로 구별</td><td>행정표준코드의 법정동코드 재사용</td><td><code>schema:AdministrativeArea</code></td></tr>
+        <tr><td class="k">도서관유형</td><td>도서관을 나누는 유형</td><td>작은도서관</td><td class="c">7</td><td>없음</td><td>7개 유형에 번호 부여</td><td><code>ex:LibraryType</code></td></tr>
+      </table></div>
+
+      <div class="card">
+        <h3>속성 명세표</h3>
+        <p>표현하려는 모든 속성을 적습니다. 개체와 개체를 잇는 관계도, 개체에 붙는 값도 모두 속성입니다. 속성마다 <b>domain</b>(주어 자리의 클래스)과 <b>range</b>(목적어 자리에 오는 것)를 적습니다.</p>
+        <ul class="do" style="margin-top:12px">
+          <li>range에는 목적어가 개체이면 클래스를, 리터럴이면 값의 종류(텍스트, 숫자, 날짜, 시간)를 적습니다.</li>
+          <li>같은 속성이 여러 클래스에 쓰이면 클래스마다 한 줄씩 적습니다. 한 줄에는 domain 하나와 원본 컬럼 하나만 둡니다.</li>
+          <li>원본 컬럼명은 파일에 적힌 그대로 적습니다. 변환할 때 이 이름으로 열을 찾습니다.</li>
+        </ul>
+      </div>
+      <p class="label" style="margin:6px 0 -6px">템플릿 예시 · 속성 명세표 (옅은 배경은 목적어가 URI인 줄)</p>
+      <div class="tbl-wrap wide"><table>
+        <tr><th>속성</th><th>domain (주어)</th><th>range (목적어)</th><th>목적어 적는 방식</th><th>원본 컬럼명</th><th>표준 용어</th></tr>
+        <tr><td class="k">이름</td><td>도서관</td><td>텍스트</td><td>리터럴</td><td>도서관명</td><td><code>rdfs:label</code></td></tr>
+        <tr><td class="k">이름</td><td>시도</td><td>텍스트</td><td>리터럴</td><td>시도명</td><td><code>rdfs:label</code></td></tr>
+        <tr><td class="k">이름</td><td>시군구</td><td>텍스트</td><td>리터럴</td><td>시군구명</td><td><code>rdfs:label</code></td></tr>
+        <tr><td class="k">이름</td><td>운영기관</td><td>텍스트</td><td>리터럴</td><td>운영기관명</td><td><code>rdfs:label</code></td></tr>
+        <tr><td class="k">이름</td><td>도서관유형</td><td>텍스트</td><td>리터럴</td><td>도서관유형</td><td><code>rdfs:label</code></td></tr>
+        <tr class="uri"><td class="k">위치한 시도</td><td>도서관</td><td>시도</td><td>URI</td><td>시도명</td><td><code>schema:containedInPlace</code></td></tr>
+        <tr class="uri"><td class="k">위치한 시군구</td><td>도서관</td><td>시군구</td><td>URI</td><td>시도명 + 시군구명</td><td><code>schema:containedInPlace</code></td></tr>
+        <tr class="uri"><td class="k">관리하는 기관</td><td>도서관</td><td>운영기관</td><td>URI</td><td>운영기관명</td><td><code>ex:operatedBy</code></td></tr>
+        <tr class="uri"><td class="k">유형</td><td>도서관</td><td>도서관유형</td><td>URI</td><td>도서관유형</td><td><code>ex:libraryType</code></td></tr>
+        <tr><td class="k">열람좌석</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>열람좌석수</td><td><code>ex:seatCount</code></td></tr>
+        <tr><td class="k">대출가능 권수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>대출가능권수</td><td><code>ex:loanLimit</code></td></tr>
+        <tr><td class="k">평일 운영 시작 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>평일운영시작시각</td><td><code>ex:weekdayOpens</code></td></tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="panel" id="step-7" role="tabpanel" aria-labelledby="tab-7">
+    <div class="panel-head"><span class="big-num" aria-hidden="true">7</span><p class="count">STEP 7 / 7</p><h2>표준 어휘 판단하기</h2></div>
+    <p class="summary">클래스와 속성마다, 이미 있는 표준 어휘 가운데 다시 쓸 수 있는 용어가 있는지 찾아 명세표에 적습니다.</p>
+    <div class="flow"><div><span class="tag in">가져오는 것</span><p>클래스 명세표, 속성 명세표</p></div><span class="arrow" aria-hidden="true">→</span><div><span class="tag">만드는 것</span><p>‘표준 용어’ 열을 채운 두 명세표</p></div></div>
+    <p class="reason"><b>왜 하나요?</b> 같은 뜻에 같은 이름을 써야 다른 사람이 만든 데이터와 이어집니다.</p>
+    <div class="qs">
+      <div class="q"><div class="n">1</div><h3>찾아봅니다</h3><p>아래 어휘에서 같은 뜻의 용어가 있는지 찾습니다.</p></div>
+      <div class="q"><div class="n">2</div><h3>확인합니다</h3><p>이름만 보고 고르지 않습니다. 용어 페이지에서 정의와 domain·range를 읽습니다.</p></div>
+      <div class="q"><div class="n">3</div><h3>정합니다</h3><p>내 쓰임과 맞으면 다시 쓰고, 맞는 용어가 없으면 <code>ex:</code>로 직접 만듭니다.</p></div>
+    </div>
+    <div class="stack">
+      <div class="tbl-wrap"><table>
+        <tr><th>접두어</th><th>어휘</th><th>용어를 찾는 곳</th></tr>
+        <tr><td class="k"><code>schema:</code></td><td>schema.org</td><td><a href="https://schema.org" target="_blank" rel="noopener">schema.org</a>에서 클래스 이름으로 검색해 속성 목록을 봅니다</td></tr>
+        <tr><td class="k"><code>dcterms:</code></td><td>DCMI Metadata Terms</td><td><a href="https://www.dublincore.org/specifications/dublin-core/dcmi-terms/" target="_blank" rel="noopener">DCMI Metadata Terms 목록</a></td></tr>
+        <tr><td class="k"><code>rdfs:</code></td><td>RDFS</td><td><code>rdfs:label</code> 등 수업에서 다룬 용어</td></tr>
+        <tr><td class="k"><code>ex:</code></td><td>임시 네임스페이스</td><td>위 세 어휘에서 찾지 못한 것만 직접 만들어 씁니다</td></tr>
+      </table></div>
+      <div class="note"><b>이번 수업에서는 위 네 가지만 씁니다.</b> 정한 용어를 클래스 명세표와 속성 명세표의 ‘표준 용어’ 열에 적으면 설계가 끝납니다.</div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <button type="button" class="prev">← 이전 단계</button>
+    <button type="button" class="next">다음 단계 →</button>
+  </div>
+</main>
+
+<footer><div class="wrap">2026년 2학기 텍스트 마이닝 · 키보드 좌우 화살표로도 단계를 옮길 수 있습니다</div></footer>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  var fill = document.querySelector('.track-fill');
+  var track = document.querySelector('.track');
+  var prev = document.querySelector('.pager .prev');
+  var next = document.querySelector('.pager .next');
+  var toggle = document.querySelector('.view-toggle');
+  var current = 0;
+
+  function show(i, opts) {
+    opts = opts || {};
+    current = Math.max(0, Math.min(tabs.length - 1, i));
+    tabs.forEach(function (t, k) {
+      var on = k === current;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      t.classList.toggle('done', k < current);
+    });
+    panels.forEach(function (p, k) { p.classList.toggle('active', k === current); });
+    fill.style.width = (track.offsetWidth * current / (tabs.length - 1)) + 'px';
+    prev.disabled = current === 0;
+    next.disabled = current === tabs.length - 1;
+    if (opts.focus) tabs[current].focus();
+    if (opts.hash !== false) { try { history.replaceState(null, '', '#s' + (current + 1)); } catch (e) {} }
+    if (opts.scroll) {
+      var bar = document.querySelector('.stepper-bar');
+      var y = bar.getBoundingClientRect().top + window.scrollY;
+      if (window.scrollY > y) window.scrollTo({ top: y });
+    }
+    var el = tabs[current];
+    if (el.scrollIntoView && el.parentNode.scrollWidth > el.parentNode.clientWidth) {
+      el.parentNode.scrollLeft = el.offsetLeft - el.parentNode.clientWidth / 2 + el.offsetWidth / 2;
+    }
+  }
+
+  tabs.forEach(function (t, k) {
+    t.addEventListener('click', function () {
+      if (document.body.classList.contains('show-all')) {
+        panels[k].scrollIntoView();
+        show(k, { hash: true });
+      } else {
+        show(k, { scroll: true });
+      }
+    });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(current + 1, { focus: true, scroll: true }); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1, { focus: true, scroll: true }); }
+      else if (e.key === 'Home') { e.preventDefault(); show(0, { focus: true, scroll: true }); }
+      else if (e.key === 'End') { e.preventDefault(); show(tabs.length - 1, { focus: true, scroll: true }); }
+    });
+  });
+  prev.addEventListener('click', function () { show(current - 1, { scroll: true }); });
+  next.addEventListener('click', function () { show(current + 1, { scroll: true }); });
+
+  toggle.addEventListener('click', function () {
+    var on = !document.body.classList.contains('show-all');
+    document.body.classList.toggle('show-all', on);
+    toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    toggle.textContent = on ? '단계별로 보기' : '전체 펼치기';
+  });
+
+  window.addEventListener('resize', function () { show(current, { hash: false }); });
+
+
+  var m = (location.hash || '').match(/^#s([1-7])$/);
+  show(m ? parseInt(m[1], 10) - 1 : 0, { hash: false });
+})();
+</script>
+</body>
+</html>
