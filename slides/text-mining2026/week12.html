@@ -434,11 +434,11 @@
       <p class="label" style="margin:6px 0 -6px">템플릿 예시 · 클래스 명세표</p>
       <div class="tbl-wrap wide"><table>
         <tr><th>클래스</th><th>설명</th><th>예시 개체</th><th class="c">고유값 개수</th><th>정제 규칙</th><th>URI 만드는 규칙</th><th>표준 용어</th></tr>
-        <tr><td class="k">도서관</td><td>지자체가 관리하는 도서관 한 곳</td><td>수자인작은도서관</td><td class="c">3,556</td><td>중복 행 처리</td><td>행별로 번호 부여</td><td><code>schema:Library</code></td></tr>
-        <tr><td class="k">운영기관</td><td>도서관을 운영하는 기관</td><td>에코델타…입주자대표회의</td><td class="c">1,268</td><td>빈칸은 비워 둠</td><td>행정표준코드의 기관코드 재사용 (없는 기관은 번호 부여)</td><td><code>schema:Organization</code></td></tr>
-        <tr><td class="k">시도</td><td>도서관이 위치한 시도</td><td>부산광역시</td><td class="c">18</td><td>옛 이름을 지금 이름으로 통일</td><td>행정표준코드의 법정동코드 재사용</td><td><code>schema:AdministrativeArea</code></td></tr>
-        <tr><td class="k">시군구</td><td>도서관이 위치한 시군구</td><td>강서구</td><td class="c">236</td><td>같은 이름이 있으므로 시도 + 시군구로 구별</td><td>행정표준코드의 법정동코드 재사용</td><td><code>schema:AdministrativeArea</code></td></tr>
-        <tr><td class="k">도서관유형</td><td>도서관을 나누는 유형</td><td>작은도서관</td><td class="c">7</td><td>없음</td><td>7개 유형에 번호 부여</td><td><code>ex:LibraryType</code></td></tr>
+        <tr><td class="k">도서관</td><td>지자체가 관리하는 도서관 한 곳</td><td>수자인작은도서관</td><td class="c">3,657</td><td>중복 행 처리</td><td>행별로 번호 부여</td><td><code>schema:Library</code></td></tr>
+        <tr><td class="k">운영기관</td><td>도서관을 운영하는 기관</td><td>에코델타…입주자대표회의</td><td class="c">1,301</td><td>빈칸은 비워 둠</td><td>행정표준코드의 기관코드 재사용 (없는 기관은 번호 부여)</td><td><code>schema:Organization</code></td></tr>
+        <tr><td class="k">시도</td><td>도서관이 위치한 시도</td><td>부산광역시</td><td class="c">18</td><td>옛 이름을 지금 이름으로 통일</td><td>행정표준코드의 법정동코드 재사용</td><td><code>ex:Sido</code></td></tr>
+        <tr><td class="k">시군구</td><td>도서관이 위치한 시군구</td><td>강서구</td><td class="c">252</td><td>같은 이름이 있으므로 시도 + 시군구로 구별</td><td>행정표준코드의 법정동코드 재사용</td><td><code>ex:Sigungu</code></td></tr>
+        <tr><td class="k">도서관유형</td><td>도서관을 나누는 유형</td><td>작은도서관</td><td class="c">7</td><td>없음</td><td>7개 유형에 번호 부여</td><td><code>schema:DefinedTerm</code></td></tr>
       </table></div>
 
       <div class="card">
@@ -450,7 +450,7 @@
           <li>원본 컬럼명은 파일에 적힌 그대로 적습니다. 변환할 때 이 이름으로 열을 찾습니다.</li>
         </ul>
       </div>
-      <p class="label" style="margin:6px 0 -6px">템플릿 예시 · 속성 명세표 (옅은 배경은 목적어가 URI인 줄)</p>
+      <p class="label" style="margin:6px 0 -6px">템플릿 예시 · 속성 명세표 · 원본 28개 열 전체 (옅은 배경은 목적어가 URI인 줄)</p>
       <div class="tbl-wrap wide"><table>
         <tr><th>속성</th><th>domain (주어)</th><th>range (목적어)</th><th>목적어 적는 방식</th><th>원본 컬럼명</th><th>표준 용어</th></tr>
         <tr><td class="k">이름</td><td>도서관</td><td>텍스트</td><td>리터럴</td><td>도서관명</td><td><code>rdfs:label</code></td></tr>
@@ -458,14 +458,44 @@
         <tr><td class="k">이름</td><td>시군구</td><td>텍스트</td><td>리터럴</td><td>시군구명</td><td><code>rdfs:label</code></td></tr>
         <tr><td class="k">이름</td><td>운영기관</td><td>텍스트</td><td>리터럴</td><td>운영기관명</td><td><code>rdfs:label</code></td></tr>
         <tr><td class="k">이름</td><td>도서관유형</td><td>텍스트</td><td>리터럴</td><td>도서관유형</td><td><code>rdfs:label</code></td></tr>
-        <tr class="uri"><td class="k">위치한 시도</td><td>도서관</td><td>시도</td><td>URI</td><td>시도명</td><td><code>schema:containedInPlace</code></td></tr>
-        <tr class="uri"><td class="k">위치한 시군구</td><td>도서관</td><td>시군구</td><td>URI</td><td>시도명 + 시군구명</td><td><code>schema:containedInPlace</code></td></tr>
-        <tr class="uri"><td class="k">관리하는 기관</td><td>도서관</td><td>운영기관</td><td>URI</td><td>운영기관명</td><td><code>ex:operatedBy</code></td></tr>
-        <tr class="uri"><td class="k">유형</td><td>도서관</td><td>도서관유형</td><td>URI</td><td>도서관유형</td><td><code>ex:libraryType</code></td></tr>
-        <tr><td class="k">열람좌석</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>열람좌석수</td><td><code>ex:seatCount</code></td></tr>
-        <tr><td class="k">대출가능 권수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>대출가능권수</td><td><code>ex:loanLimit</code></td></tr>
+        <tr class="uri"><td class="k">위치한 시도</td><td>도서관</td><td>시도</td><td>URI</td><td>시도명</td><td><code>ex:sido</code></td></tr>
+        <tr class="uri"><td class="k">위치한 시군구</td><td>도서관</td><td>시군구</td><td>URI</td><td>시도명 + 시군구명</td><td><code>ex:sigungu</code></td></tr>
+        <tr class="uri"><td class="k">관리하는 기관</td><td>도서관</td><td>운영기관</td><td>URI</td><td>운영기관명</td><td><code>schema:parentOrganization</code></td></tr>
+        <tr class="uri"><td class="k">유형</td><td>도서관</td><td>도서관유형</td><td>URI</td><td>도서관유형</td><td><code>schema:additionalType</code></td></tr>
+        <tr class="uri"><td class="k">홈페이지</td><td>도서관</td><td>웹 주소</td><td>URI</td><td>홈페이지주소</td><td><code>schema:url</code></td></tr>
+        <tr><td class="k">주소</td><td>도서관</td><td>텍스트</td><td>리터럴</td><td>소재지도로명주소</td><td><code>schema:address</code></td></tr>
+        <tr><td class="k">전화번호</td><td>도서관</td><td>텍스트</td><td>리터럴</td><td>도서관전화번호</td><td><code>schema:telephone</code></td></tr>
+        <tr><td class="k">위도</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>위도</td><td><code>schema:latitude</code></td></tr>
+        <tr><td class="k">경도</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>경도</td><td><code>schema:longitude</code></td></tr>
+        <tr><td class="k">데이터 기준일</td><td>도서관</td><td>날짜</td><td>리터럴</td><td>데이터기준일자</td><td><code>dcterms:modified</code></td></tr>
+        <tr><td class="k">휴관일</td><td>도서관</td><td>텍스트</td><td>리터럴</td><td>휴관일</td><td><code>ex:closedDays</code></td></tr>
         <tr><td class="k">평일 운영 시작 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>평일운영시작시각</td><td><code>ex:weekdayOpens</code></td></tr>
+        <tr><td class="k">평일 운영 종료 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>평일운영종료시각</td><td><code>ex:weekdayCloses</code></td></tr>
+        <tr><td class="k">토요일 운영 시작 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>토요일운영시작시각</td><td><code>ex:saturdayOpens</code></td></tr>
+        <tr><td class="k">토요일 운영 종료 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>토요일운영종료시각</td><td><code>ex:saturdayCloses</code></td></tr>
+        <tr><td class="k">공휴일 운영 시작 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>공휴일운영시작시각</td><td><code>ex:holidayOpens</code></td></tr>
+        <tr><td class="k">공휴일 운영 종료 시간</td><td>도서관</td><td>시간</td><td>리터럴</td><td>공휴일운영종료시각</td><td><code>ex:holidayCloses</code></td></tr>
+        <tr><td class="k">열람좌석</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>열람좌석수</td><td><code>ex:seatCount</code></td></tr>
+        <tr><td class="k">도서 수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>자료수(도서)</td><td><code>ex:bookCount</code></td></tr>
+        <tr><td class="k">연속간행물 수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>자료수(연속간행물)</td><td><code>ex:serialCount</code></td></tr>
+        <tr><td class="k">비도서 수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>자료수(비도서)</td><td><code>ex:nonBookCount</code></td></tr>
+        <tr><td class="k">대출가능 권수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>대출가능권수</td><td><code>ex:loanLimit</code></td></tr>
+        <tr><td class="k">대출가능 일수</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>대출가능일수</td><td><code>ex:loanPeriodDays</code></td></tr>
+        <tr><td class="k">부지면적</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>부지면적</td><td><code>ex:siteArea</code></td></tr>
+        <tr><td class="k">건물면적</td><td>도서관</td><td>숫자</td><td>리터럴</td><td>건물면적</td><td><code>ex:buildingArea</code></td></tr>
+        <tr><td class="k">(쓰지 않음)</td><td>—</td><td>—</td><td>—</td><td>제공기관코드</td><td>—</td></tr>
+        <tr><td class="k">(쓰지 않음)</td><td>—</td><td>—</td><td>—</td><td>제공기관명</td><td>—</td></tr>
       </table></div>
+      <div class="card">
+        <h3>표준 용어를 이렇게 골랐습니다</h3>
+        <ul class="do">
+          <li><b>다시 쓴 용어</b>는 정의와 domain·range가 맞는 것만 골랐습니다. 도서관(<code>schema:Library</code>)은 조직의 한 종류여서 <code>schema:parentOrganization</code>(조직 → 조직)을 쓸 수 있습니다.</li>
+          <li><b>시도와 시군구</b>는 <code>ex:Sido</code>, <code>ex:Sigungu</code>로 직접 만들었습니다. 표준 용어 <code>schema:AdministrativeArea</code>와 <code>schema:containedInPlace</code>를 쓰면 두 클래스와 두 속성이 같은 이름이 되어 시도와 시군구가 구별되지 않습니다. 클래스는 대문자로(<code>ex:Sido</code>), 속성은 소문자로(<code>ex:sido</code>) 시작합니다.</li>
+          <li><b>유형</b>은 <code>schema:additionalType</code>으로 잇고, 유형 개체는 정의가 있는 용어를 뜻하는 <code>schema:DefinedTerm</code>으로 두었습니다.</li>
+          <li><b>이름이 비슷해도 쓰지 않은 용어</b>가 있습니다. <code>schema:opens</code>는 domain이 운영시간 명세(OpeningHoursSpecification)이고, <code>schema:seatingCapacity</code>는 탈것(Vehicle), <code>schema:collectionSize</code>는 컬렉션(Collection), <code>schema:floorSize</code>는 숙박 시설에 쓰는 용어라 도서관에 직접 붙일 수 없습니다. 이런 속성은 <code>ex:</code>로 만들었습니다.</li>
+          <li><b>제공기관코드, 제공기관명</b>은 도서관이 아니라 이 행을 올린 기관에 대한 열이라 쓰지 않았습니다.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
