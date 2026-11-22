@@ -511,12 +511,21 @@
       <div class="q"><div class="n">3</div><h3>정합니다</h3><p>내 쓰임과 맞으면 다시 쓰고, 맞는 용어가 없으면 <code>ex:</code>로 직접 만듭니다.</p></div>
     </div>
     <div class="stack">
-      <div class="tbl-wrap"><table>
-        <tr><th>접두어</th><th>어휘</th><th>용어를 찾는 곳</th></tr>
-        <tr><td class="k"><code>schema:</code></td><td>schema.org</td><td><a href="https://schema.org" target="_blank" rel="noopener">schema.org</a>에서 클래스 이름으로 검색해 속성 목록을 봅니다</td></tr>
-        <tr><td class="k"><code>dcterms:</code></td><td>DCMI Metadata Terms</td><td><a href="https://www.dublincore.org/specifications/dublin-core/dcmi-terms/" target="_blank" rel="noopener">DCMI Metadata Terms 목록</a></td></tr>
-        <tr><td class="k"><code>rdfs:</code></td><td>RDFS</td><td><code>rdfs:label</code> 등 수업에서 다룬 용어</td></tr>
-        <tr><td class="k"><code>ex:</code></td><td>임시 네임스페이스</td><td>위 세 어휘에서 찾지 못한 것만 직접 만들어 씁니다</td></tr>
+      <div class="card">
+        <h3>세 어휘는 무엇이 다른가요?</h3>
+        <ul class="do">
+          <li><b><code>schema:</code> — schema.org</b><br>세상의 거의 모든 것(장소, 기관, 사람, 행사, 상품 등)을 기술하려고 만든 범용 어휘입니다. 클래스와 속성이 가장 많아서, 표준 용어를 찾을 때 먼저 보는 곳입니다.</li>
+          <li><b><code>rdfs:</code> — RDF Schema</b><br>데이터를 기술하는 어휘가 아니라, 스키마 자체를 정의하는 어휘입니다(클래스, domain, range). 실습에서는 개체의 이름을 적는 <code>rdfs:label</code> 하나만 씁니다.</li>
+          <li><b><code>dcterms:</code> — DCMI Metadata Terms (더블린 코어)</b><br>자료나 레코드에 대한 메타데이터(만든 이, 날짜, 출처, 식별자 등)를 적는 어휘입니다. 대상 자체가 아니라 “그 기록이 언제, 누구에 의해 만들어졌나”를 적을 때 쓰고, 실습에서는 <code>dcterms:modified</code>가 그 예입니다.</li>
+        </ul>
+      </div>
+      <p class="label" style="margin:6px 0 -6px">표로 줄이면 이렇습니다</p>
+      <div class="tbl-wrap wide"><table>
+        <tr><th>접두어</th><th>어휘</th><th>무엇을 기술하나</th><th>실습에서 쓰는 예</th><th>용어를 찾는 곳</th></tr>
+        <tr><td class="k"><code>schema:</code></td><td>schema.org</td><td>대상 그 자체 (도서관, 기관, 주소 등)</td><td><code>schema:Library</code>, <code>schema:address</code></td><td><a href="https://schema.org" target="_blank" rel="noopener">schema.org</a>에서 클래스 이름으로 검색해 속성 목록을 봅니다</td></tr>
+        <tr><td class="k"><code>rdfs:</code></td><td>RDF Schema</td><td>스키마, 그리고 이름</td><td><code>rdfs:label</code></td><td><code>rdfs:label</code> 등 수업에서 다룬 용어</td></tr>
+        <tr><td class="k"><code>dcterms:</code></td><td>DCMI Metadata Terms</td><td>기록에 대한 정보</td><td><code>dcterms:modified</code></td><td><a href="https://www.dublincore.org/specifications/dublin-core/dcmi-terms/" target="_blank" rel="noopener">DCMI Metadata Terms 목록</a></td></tr>
+        <tr><td class="k"><code>ex:</code></td><td>임시 네임스페이스</td><td>위 세 어휘에 없는 것</td><td><code>ex:Sido</code>, <code>ex:closedDays</code></td><td>위 세 어휘에서 찾지 못한 것만 직접 만들어 씁니다</td></tr>
       </table></div>
       <div class="card">
         <h3><code>ex:</code>로 직접 만들 때 이름 짓는 규칙</h3>
