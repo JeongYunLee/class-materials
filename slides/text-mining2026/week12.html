@@ -518,6 +518,21 @@
         <tr><td class="k"><code>rdfs:</code></td><td>RDFS</td><td><code>rdfs:label</code> 등 수업에서 다룬 용어</td></tr>
         <tr><td class="k"><code>ex:</code></td><td>임시 네임스페이스</td><td>위 세 어휘에서 찾지 못한 것만 직접 만들어 씁니다</td></tr>
       </table></div>
+      <div class="card">
+        <h3><code>ex:</code>로 직접 만들 때 이름 짓는 규칙</h3>
+        <ul class="do">
+          <li><b>클래스(Class)는 대문자로 시작합니다.</b> <code>ex:Sido</code>, <code>ex:Library</code></li>
+          <li><b>속성(property)은 소문자로 시작합니다.</b> <code>ex:sido</code>, <code>ex:closedDays</code></li>
+          <li><b>두 단어 이상을 합칠 때는 띄어쓰기 없이 붙이고, 이어지는 단어의 첫 글자를 대문자로 씁니다.</b> 이렇게 쓰는 방식을 camelCase라고 합니다. 속성은 <code>ex:libraryType</code>, <code>ex:seatCount</code>, 클래스는 <code>ex:LibraryType</code>처럼 씁니다.</li>
+          <li>공백, 하이픈(-), 밑줄(_), 한글은 쓰지 않고 영어로 짓습니다. <code>ex:library type</code>, <code>ex:library_type</code>, <code>ex:도서관유형</code>은 쓰지 않습니다.</li>
+          <li>클래스 이름은 단수 명사로 짓습니다. <code>ex:Libraries</code>가 아니라 <code>ex:Library</code>입니다.</li>
+        </ul>
+      </div>
+      <div class="tbl-wrap"><table>
+        <tr><th>구분</th><th>규칙</th><th>맞는 예</th><th>틀린 예</th></tr>
+        <tr><td class="k">클래스</td><td>대문자로 시작 + camelCase</td><td><code>ex:LibraryType</code></td><td><code>ex:libraryType</code>, <code>ex:Library_Type</code></td></tr>
+        <tr><td class="k">속성</td><td>소문자로 시작 + camelCase</td><td><code>ex:libraryType</code></td><td><code>ex:LibraryType</code>, <code>ex:library-type</code></td></tr>
+      </table></div>
       <div class="note"><b>이번 수업에서는 위 네 가지만 씁니다.</b> 정한 용어를 클래스 명세표와 속성 명세표의 ‘표준 용어’ 열에 적으면 설계가 끝납니다.</div>
     </div>
   </section>
